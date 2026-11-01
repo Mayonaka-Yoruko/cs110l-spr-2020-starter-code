@@ -51,7 +51,7 @@ fn is_in_schars(schars: &[char], ch: char) -> bool {
     schars.contains(&ch)
 }
 
-// Prompts until the user types exactly one ASCII letter.
+// check user prompt.
 fn user_guess() -> Result<char, Invalid> {
     loop {
         print!("Please guess a letter: ");
@@ -76,7 +76,7 @@ fn user_guess() -> Result<char, Invalid> {
     }
 }
 
-// Game body. Prints exactly the format the grader expects.
+// Game body. 
 fn hangman(secret_word: &[char]) {
     println!("Welcome to CS110L Hangman!");
 
@@ -111,7 +111,7 @@ fn hangman(secret_word: &[char]) {
         if is_in_schars(&guessed, guess) {
             println!("You already guessed that letter");
             println!();
-            continue;
+           continue;
         }
         guessed.push(guess);
 
