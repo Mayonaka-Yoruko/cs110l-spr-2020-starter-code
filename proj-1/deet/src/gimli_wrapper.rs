@@ -220,14 +220,29 @@ pub fn load_file(object: &object::File, endian: gimli::RunTimeEndian) -> Result<
                         );
                     }
 
-                    // Get the File
-                    let file = compilation_units
-                        .iter_mut()
-                        .find(|f| f.name == path.as_os_str().to_str().unwrap());
-
                     // Determine line/column. DWARF line/column is never 0, so we use that
                     // but other applications may want to display this differently.
                     let line = row.line().unwrap_or(0);
+                    let path_str = path.as_os_str().to_str().unwrap_or("");
+
+                    // Match by exact/suffix name. If the CU name was unresolved
+                    // ("<unknown>"), fall back to the current compilation unit so
+                    // line entries are not dropped.
+                    let file = compilation_units.iter_mut().find(|f| {
+                        f.name == path_str
+                            || (!path_str.is_empty()
+                                && (path_str.ends_with(&format!("/{}", f.name))
+                                    || f.name.ends_with(path_str)))
+                    });
+                    let file = match file {
+                        Some(file) => Some(file),
+                        None => compilation_units.last_mut().map(|file| {
+                            if file.name == "<unknown>" && !path_str.is_empty() {
+                                file.name = path_str.to_string();
+                            }
+                            file
+                        }),
+                    };
 
                     if let Some(file) = file {
                         file.lines.push(Line {

@@ -53,17 +53,31 @@ impl DwarfData {
 
     #[allow(dead_code)]
     pub fn get_addr_for_line(&self, file: Option<&str>, line_number: usize) -> Option<usize> {
-        let target_file = match file {
-            Some(filename) => self.get_target_file(filename)?,
-            None => self.files.get(0)?,
-        };
-        Some(
-            target_file
-                .lines
-                .iter()
-                .find(|line| line.number >= line_number)?
-                .address,
-        )
+        match file {
+            Some(filename) => {
+                let target_file = self.get_target_file(filename)?;
+                Some(
+                    target_file
+                        .lines
+                        .iter()
+                        .find(|line| line.number >= line_number)?
+                        .address,
+                )
+            }
+            None => {
+                // Prefer a compilation unit that actually has a line table.
+                for target_file in &self.files {
+                    if let Some(line) = target_file
+                        .lines
+                        .iter()
+                        .find(|line| line.number >= line_number)
+                    {
+                        return Some(line.address);
+                    }
+                }
+                None
+            }
+        }
     }
 
     #[allow(dead_code)]
