@@ -73,6 +73,21 @@ fn main() {
 
     // TODO: call get_input_numbers() and store a queue of numbers to factor
 
+    let numbers : Arc<Mutex<VecDeque<u32>>> = Arc::new(Mutex::new(get_input_numbers()));
+
+    let mut threads = Vec::new();
+    for _ in 0..num_threads {
+        let numbers = numbers.clone();
+        threads.push(thread::spawn(move || {
+            let mut numbers = numbers.lock().unwrap();
+            while let Some(number) = numbers.pop_front() {
+                factor_number(number);
+            }
+        }));
+    }
+    for thread in threads {
+        thread.join().unwrap();
+    }
     // TODO: spawn `num_threads` threads, each of which pops numbers off the queue and calls
     // factor_number() until the queue is empty
 
